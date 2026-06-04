@@ -60,7 +60,7 @@ else:
     buy_dex = "RAYDIUM"
     sell_dex = "ORCA"
 
-msg = f""" NET ARBITRAGE OPPORTUNITY
+msg = f"""NET ARBITRAGE OPPORTUNITY
 
 TOKEN: {token}
 
@@ -72,7 +72,6 @@ GROSS SPREAD: {gross_spread*100:.2f}%
 
 BUY PRICE: {buy}
 SELL PRICE: {sell}"""
-
 
 
 
