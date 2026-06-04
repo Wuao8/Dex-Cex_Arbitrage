@@ -1,16 +1,20 @@
 import requests
 
-print("TEST JUPITER STABLE CONNECTION...")
+print("JUPITER QUOTE ENGINE START")
 
-urls = [
-    "https://api.github.com",
-    "https://price.jup.ag",
-    "https://jup.ag"
-]
+url = "https://quote-api.jup.ag/v6/quote"
 
-for url in urls:
-    try:
-        r = requests.get(url, timeout=10)
-        print(url, "->", r.status_code)
-    except Exception as e:
-        print(url, "-> ERROR:", e)
+params = {
+    "inputMint": "So11111111111111111111111111111111111111112",  # SOL
+    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", # USDC
+    "amount": 100000000,  # 0.1 SOL
+    "slippageBps": 50
+}
+
+try:
+    r = requests.get(url, params=params, timeout=10)
+    print("STATUS:", r.status_code)
+    print("RESPONSE:")
+    print(r.text[:500])
+except Exception as e:
+    print("ERROR:", e)
