@@ -9,6 +9,21 @@ print("SOLANA ARBITRAGE ENGINE v3 (TELEGRAM ENABLED)")
 
 snapshot = get_market_snapshot()
 
+
+def send_telegram(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": message,
+        "parse_mode": "Markdown"
+    }
+
+    try:
+        requests.post(url, data=payload, timeout=10)
+    except Exception as e:
+        print("Telegram error:", e)
+
 for token, prices in snapshot.items():
 
     orca = prices["orca"]
@@ -53,16 +68,4 @@ SELL: {sell}"""
 
 
 
-def send_telegram(message):
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
 
-    payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
-        "text": message,
-        "parse_mode": "Markdown"
-    }
-
-    try:
-        requests.post(url, data=payload, timeout=10)
-    except Exception as e:
-        print("Telegram error:", e)
