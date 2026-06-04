@@ -1,9 +1,16 @@
 import requests
 
-print("TEST INTERNET BASE...")
+print("TEST JUPITER STABLE CONNECTION...")
 
-try:
-    r = requests.get("https://api.github.com", timeout=10)
-    print("GitHub API status:", r.status_code)
-except Exception as e:
-    print("ERROR:", e)
+urls = [
+    "https://api.github.com",
+    "https://price.jup.ag",
+    "https://jup.ag"
+]
+
+for url in urls:
+    try:
+        r = requests.get(url, timeout=10)
+        print(url, "->", r.status_code)
+    except Exception as e:
+        print(url, "-> ERROR:", e)
