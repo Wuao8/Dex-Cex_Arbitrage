@@ -1,37 +1,33 @@
-print("SOLANA ARBITRAGE ENGINE v0")
+from jupiter import get_quote
 
-# --- MOCK PRICES (fase 1) ---
-orca_prices = {
-    "SOL": 100.0,
-    "JUP": 0.75,
-    "BONK": 0.00002
+print("SOLANA ARBITRAGE ENGINE v1 (LIVE DATA)")
+
+# --- TOKEN MINTS ---
+TOKENS = {
+    "SOL": "So11111111111111111111111111111111111111112",
+    "USDC": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 }
 
-raydium_prices = {
-    "SOL": 101.2,
-    "JUP": 0.78,
-    "BONK": 0.000021
-}
+# --- CONFIG ---
+AMOUNT = 100000000  # 0.1 SOL
 
-# --- ENGINE ---
-def calculate_spread(token):
-    buy = min(orca_prices[token], raydium_prices[token])
-    sell = max(orca_prices[token], raydium_prices[token])
+# --- GET REAL PRICE ---
+quote = get_quote(
+    TOKENS["SOL"],
+    TOKENS["USDC"],
+    AMOUNT
+)
 
-    spread = ((sell - buy) / buy) * 100
+if quote:
+    in_amount = quote["in_amount"]
+    out_amount = quote["out_amount"]
 
-    return buy, sell, spread
+    price = int(out_amount) / int(in_amount)
 
-# --- ANALYSIS ---
-for token in orca_prices.keys():
-    buy, sell, spread = calculate_spread(token)
+    print("\nLIVE PRICE DATA")
+    print("INPUT (lamports):", in_amount)
+    print("OUTPUT (USDC base units):", out_amount)
+    print("PRICE SOL -> USDC:", price)
 
-    print(f"\nTOKEN: {token}")
-    print(f"BUY PRICE: {buy}")
-    print(f"SELL PRICE: {sell}")
-    print(f"SPREAD: {spread:.2f}%")
-
-    if spread > 1.0:
-        print("🔥 OPPORTUNITÀ INTERESSANTE")
-    else:
-        print("❌ NO TRADE")
+else:
+    print("Failed to fetch quote")
