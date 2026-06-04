@@ -51,7 +51,7 @@ for token, prices in snapshot.items():
     print(f"NET PROFIT: {net_profit_percent:.2f}%")
 
     if net_profit_percent > 0.5:
-        msg = f"""🔥 NET ARBITRAGE OPPORTUNITY
+        msg = f""" NET ARBITRAGE OPPORTUNITY
 
 if orca < raydium:
     buy_dex = "ORCA"
