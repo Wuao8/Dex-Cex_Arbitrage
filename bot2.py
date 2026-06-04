@@ -1,3 +1,8 @@
+import requests
+from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+from price_provider import get_market_snapshot
+
+
 from price_provider import get_market_snapshot
 
 print("SOLANA ARBITRAGE ENGINE v2 (STABLE ARCH)")
