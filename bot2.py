@@ -1,33 +1,25 @@
-from jupiter import get_quote
+from price_provider import get_market_snapshot
 
-print("SOLANA ARBITRAGE ENGINE v1 (LIVE DATA)")
+print("SOLANA ARBITRAGE ENGINE v2 (STABLE ARCH)")
 
-# --- TOKEN MINTS ---
-TOKENS = {
-    "SOL": "So11111111111111111111111111111111111111112",
-    "USDC": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
-}
+snapshot = get_market_snapshot()
 
-# --- CONFIG ---
-AMOUNT = 100000000  # 0.1 SOL
+for token, prices in snapshot.items():
 
-# --- GET REAL PRICE ---
-quote = get_quote(
-    TOKENS["SOL"],
-    TOKENS["USDC"],
-    AMOUNT
-)
+    orca = prices["orca"]
+    raydium = prices["raydium"]
 
-if quote:
-    in_amount = quote["in_amount"]
-    out_amount = quote["out_amount"]
+    buy = min(orca, raydium)
+    sell = max(orca, raydium)
 
-    price = int(out_amount) / int(in_amount)
+    spread = ((sell - buy) / buy) * 100
 
-    print("\nLIVE PRICE DATA")
-    print("INPUT (lamports):", in_amount)
-    print("OUTPUT (USDC base units):", out_amount)
-    print("PRICE SOL -> USDC:", price)
+    print(f"\nTOKEN: {token}")
+    print(f"ORCA: {orca}")
+    print(f"RAYDIUM: {raydium}")
+    print(f"SPREAD: {spread:.2f}%")
 
-else:
-    print("Failed to fetch quote")
+    if spread > 1.0:
+        print("🔥 OPPORTUNITÀ INTERESSANTE")
+    else:
+        print("❌ NO TRADE")
