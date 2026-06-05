@@ -39,16 +39,39 @@ for token, prices in snapshot.items():
     binance = prices["binance"]
     dex = prices["dex"]
 
-    buy = min(binance, dex)
-    sell = max(binance, dex)
+    print(f"\nTOKEN: {token}")
+    print(f"BINANCE: {binance}")
+    print(f"DEX: {dex}")
 
-    gross_spread = (sell - buy) / buy
+    # spread reale tra mercati
+    spread = (binance - dex) / dex
 
-    ORCA_FEE = 0.003
-    RAYDIUM_FEE = 0.0025
-    SLIPPAGE = 0.002
+    spread_percent = spread * 100
 
-    net_profit_percent = (gross_spread - ORCA_FEE - RAYDIUM_FEE - SLIPPAGE) * 100
+    print(f"SPREAD: {spread_percent:.2f}%")
+
+    # soglia minima per evitare rumore
+    MIN_EDGE = 0.5
+
+    if abs(spread_percent) > MIN_EDGE:
+
+        direction = "DEX -> CEX" if binance > dex else "CEX -> DEX"
+
+        net_signal = {
+            "token": token,
+            "binance": binance,
+            "dex": dex,
+            "spread": spread_percent,
+            "direction": direction
+        }
+
+        if spread_percent > 0:
+            print("POSSIBILE OPPORTUNITÀ (BUY DEX / SELL CEX)")
+        else:
+            print("POSSIBILE OPPORTUNITÀ (BUY CEX / SELL DEX)")
+
+    else:
+        print("NO TRADE (spread too small)")
 
     print(f"\nTOKEN: {token}")
     print(f"NET PROFIT: {net_profit_percent:.2f}%")
