@@ -83,7 +83,7 @@ def get_market_snapshot():
             continue
 
         snapshot[token] = {
-            "binance": binance_price,
+            "cex": coinbasee_price,
             "dex": dex_price
         }
 
