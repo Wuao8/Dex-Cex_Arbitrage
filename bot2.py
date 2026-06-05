@@ -2,10 +2,7 @@ import requests
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 from price_provider import get_market_snapshot
 
-
-from price_provider import get_market_snapshot
-
-print("SOLANA ARBITRAGE ENGINE v3 (TELEGRAM ENABLED)")
+print("CRYPTO OPPORTUNITY ENGINE v1 (SCORING MODE)")
 
 snapshot = get_market_snapshot()
 
@@ -21,20 +18,15 @@ def send_telegram(message):
     try:
         r = requests.post(url, data=payload, timeout=10)
         print("Telegram status:", r.status_code)
-        print("Telegram response:", r.text)
     except Exception as e:
         print("Telegram ERROR:", e)
 
 
+opportunities = []
 
-
-print("SOLANA ARBITRAGE ENGINE v4 (CLEAN MODE)")
-
-snapshot = get_market_snapshot()
-
-best_trade = None
-
-
+# =========================
+# SCORING LOOP
+# =========================
 for token, prices in snapshot.items():
 
     binance = prices["binance"]
@@ -44,21 +36,17 @@ for token, prices in snapshot.items():
     print(f"BINANCE: {binance}")
     print(f"DEX: {dex}")
 
-    # 1. spread base
+    # Spread
     spread = (binance - dex) / dex
     spread_pct = abs(spread * 100)
 
-    # 2. scoring factors
+    # SCORE COMPONENTS
+    spread_score = min(spread_pct * 50, 100)
 
-    spread_score = min(spread_pct * 40, 100)   # più spread = meglio
+    liquidity_score = 70      # placeholder
+    stability_score = 60      # placeholder
+    cost_penalty = 30         # fees/slippage estimate
 
-    liquidity_score = 70  # placeholder (poi lo rendiamo reale)
-
-    stability_score = 60   # placeholder (poi volatility module)
-
-    cost_penalty = 30      # fee + slippage impatto stimato
-
-    # 3. FINAL SCORE
     score = (
         spread_score * 0.5 +
         liquidity_score * 0.2 +
@@ -71,59 +59,39 @@ for token, prices in snapshot.items():
     print(f"SPREAD: {spread_pct:.2f}%")
     print(f"SCORE: {score:.1f}/100")
 
-    # 4. decisione
-    if score > 70:
-        print("🔥 STRONG OPPORTUNITY")
-    elif score > 50:
-        print("⚠️ WEAK OPPORTUNITY")
+    opportunities.append({
+        "token": token,
+        "score": score,
+        "spread": spread_pct,
+        "binance": binance,
+        "dex": dex
+    })
+
+
+# =========================
+# RANKING TOP OPPORTUNITIES
+# =========================
+opportunities.sort(key=lambda x: x["score"], reverse=True)
+top = opportunities[:3]
+
+
+msg = "📊 TOP OPPORTUNITIES\n\n"
+
+for i, op in enumerate(top, 1):
+
+    if op["score"] >= 70:
+        level = "🔥 STRONG"
+    elif op["score"] >= 50:
+        level = "⚠️ WEAK"
     else:
-        print("NO TRADE")
+        level = "LOW"
 
-
-    print(f"\nTOKEN: {token}")
-    print(f"NET PROFIT: {net_profit_percent:.2f}%")
-
-    if net_profit_percent > 0.5:
-
-        trade = {
-            "token": token,
-            "net": net_profit_percent,
-            "gross": gross_spread * 100,
-            "buy": buy,
-            "sell": sell,
-            "orca": orca,
-            "raydium": raydium
-        }
-
-        if best_trade is None or trade["net"] > best_trade["net"]:
-            best_trade = trade
-
-    else:
-        print("NO TRADE (after fees)")
-
-
-if best_trade:
-
-    if best_trade["orca"] < best_trade["raydium"]:
-        buy_dex = "ORCA"
-        sell_dex = "RAYDIUM"
-    else:
-        buy_dex = "RAYDIUM"
-        sell_dex = "ORCA"
-
-    msg = (
-        "TOP ARBITRAGE SIGNAL\n\n"
-        f"TOKEN: {best_trade['token']}\n\n"
-        f"BUY ON: {buy_dex}\n"
-        f"SELL ON: {sell_dex}\n\n"
-        f"NET PROFIT: {best_trade['net']:.2f}%\n"
-        f"GROSS SPREAD: {best_trade['gross']:.2f}%\n\n"
-        f"BUY PRICE: {best_trade['buy']}\n"
-        f"SELL PRICE: {best_trade['sell']}"
+    msg += (
+        f"{i}. {op['token']}\n"
+        f"Score: {op['score']:.1f}/100 ({level})\n"
+        f"Spread: {op['spread']:.2f}%\n\n"
     )
 
-    print("\nSEND BEST SIGNAL")
-    send_telegram(msg)
 
-else:
-    print("\nNO GOOD OPPORTUNITIES")
+print("\n" + msg)
+send_telegram(msg)
