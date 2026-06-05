@@ -30,11 +30,11 @@ opportunities = []
 # =========================
 for token, prices in snapshot.items():
 
-    binance = prices["binance"]
+    coinbase = prices["coinbase"]
     dex = prices["dex"]
 
     print(f"\nTOKEN: {token}")
-    print(f"BINANCE: {binance}")
+    print(f"COINBASE: {coinbase}")
     print(f"DEX: {dex}")
 
     # Spread
@@ -64,7 +64,7 @@ for token, prices in snapshot.items():
         "token": token,
         "score": score,
         "spread": spread_pct,
-        "binance": binance,
+        "binance": coinbase,
         "dex": dex
     })
 
