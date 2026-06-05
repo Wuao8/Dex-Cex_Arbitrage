@@ -75,7 +75,7 @@ def get_market_snapshot():
         dex_price = get_dex_price(data["dexscreener"])
 
 
-        print(f"{token} BINANCE:", binance_price)
+        print(f"{token} CEX:", cex_price)
         print(f"{token} DEX:", dex_price)
 
         if binance_price is None or dex_price is None:
