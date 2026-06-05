@@ -1,1 +1,1 @@
-# solana-arbitrage-bot
+# Crypto Opportunity Engine
