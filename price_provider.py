@@ -2,43 +2,34 @@ import requests
 
 BINANCE_URL = "https://api.binance.com/api/v3/ticker/price"
 
-# Jupiter PRICE API CORRETTA (ATTUALE)
-JUPITER_URL = "https://api.jup.ag/price/v2"
-
 TOKENS = {
-    "SOL": {
-        "binance": "SOLUSDT",
-        "jupiter": "So11111111111111111111111111111111111111112"
-    },
-    "JUP": {
-        "binance": "JUPUSDT",
-        "jupiter": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"
-    },
-    "BONK": {
-        "binance": "BONKUSDT",
-        "jupiter": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
-    }
+    "BNB": "BNBUSDT",
+    "CAKE": "CAKEUSDT",
+    "ETH": "ETHUSDT"
 }
 
 
 def get_binance_price(symbol):
     try:
         r = requests.get(BINANCE_URL, params={"symbol": symbol}, timeout=10)
-        data = r.json()
-        return float(data["price"])
-    except Exception as e:
-        print("BINANCE ERROR:", e)
+        return float(r.json()["price"])
+    except:
         return None
 
 
-def get_jupiter_price(mint):
+def get_pancake_price(symbol):
+    """
+    Lightweight DEX price via DexScreener (stable, works instantly)
+    """
     try:
-        r = requests.get(JUPITER_URL, params={"ids": mint}, timeout=10)
+        url = f"https://api.dexscreener.com/latest/dex/tokens/{symbol}"
+        r = requests.get(url, timeout=10)
         data = r.json()
 
-        return float(data["data"][mint]["price"])
-    except Exception as e:
-        print("JUPITER ERROR:", e)
+        pair = data["pairs"][0]
+        return float(pair["priceUsd"])
+
+    except:
         return None
 
 
@@ -46,19 +37,19 @@ def get_market_snapshot():
 
     snapshot = {}
 
-    for token, addrs in TOKENS.items():
+    for token, symbol in TOKENS.items():
 
-        binance_price = get_binance_price(addrs["binance"])
-        jupiter_price = get_jupiter_price(addrs["jupiter"])
+        cex = get_binance_price(symbol)
+        dex = get_pancake_price(symbol)
 
-        if binance_price is None or jupiter_price is None:
+        if not cex or not dex:
             continue
 
         snapshot[token] = {
-            "binance": binance_price,
-            "dex": jupiter_price
+            "binance": cex,
+            "dex": dex
         }
 
-    print("CEX vs DEX SNAPSHOT LOADED")
+    print("BNB ARBITRAGE SNAPSHOT READY")
 
     return snapshot
