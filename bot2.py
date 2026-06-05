@@ -5,6 +5,7 @@ from price_provider import get_market_snapshot
 print("CRYPTO OPPORTUNITY ENGINE v1 (SCORING MODE)")
 
 snapshot = get_market_snapshot()
+print("SNAPSHOT:", snapshot)
 
 
 def send_telegram(message):
