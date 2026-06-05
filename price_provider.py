@@ -1,42 +1,39 @@
 import requests
 
-BINANCE_URL = "https://api.binance.com/api/v3/ticker/price"
+# =========================
+# CEX SOURCE (WORKING GLOBAL)
+# =========================
+COINBASE_URL = "https://api.coinbase.com/v2/prices"
 
-# Token list (CEX symbol + DEX Screener query)
+# =========================
+# TOKEN CONFIG (CEX vs DEX)
+# =========================
 TOKENS = {
     "BNB": {
-        "binance": "BNBUSDT",
+        "cex": "BNB-USD",
         "dexscreener": "wbnb"
     },
     "CAKE": {
-        "binance": "CAKEUSDT",
+        "cex": "CAKE-USD",
         "dexscreener": "pancakeswap"
     },
     "ETH": {
-        "binance": "ETHUSDT",
+        "cex": "ETH-USD",
         "dexscreener": "ethereum"
     }
 }
 
-
 # -----------------------------
 # CEX PRICE (BINANCE)
 # -----------------------------
-def get_binance_price(symbol):
+def get_coinbase_price(symbol):
     try:
-        r = requests.get(BINANCE_URL, params={"symbol": symbol}, timeout=10)
+        url = f"https://api.coinbase.com/v2/prices/{symbol}-USD/spot"
+        r = requests.get(url, timeout=10)
         data = r.json()
-
-        price = data.get("price")
-
-        if price is None:
-            print("BINANCE BAD RESPONSE:", data)
-            return None
-
-        return float(price)
-
+        return float(data["data"]["amount"])
     except Exception as e:
-        print("BINANCE ERROR:", e)
+        print("COINBASE ERROR:", e)
         return None
 
 
@@ -74,7 +71,7 @@ def get_market_snapshot():
 
     for token, data in TOKENS.items():
 
-        binance_price = get_binance_price(data["binance"])
+        cex_price = get_coinbase_price("BTC")
         dex_price = get_dex_price(data["dexscreener"])
 
 
