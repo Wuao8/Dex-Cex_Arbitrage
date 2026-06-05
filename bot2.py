@@ -34,7 +34,7 @@ for token, prices in snapshot.items():
     dex = prices["dex"]
 
     print(f"\nTOKEN: {token}")
-    print(f"COINBASE: {coinbase}")
+    print(f"CEX: {coinbase}")
     print(f"DEX: {dex}")
 
     # Spread
