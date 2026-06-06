@@ -1,60 +1,65 @@
 import requests
 
-# =========================
-# CEX SOURCE (WORKING GLOBAL)
-# =========================
-COINBASE_URL = "https://api.coinbase.com/v2/prices"
+MEXC_TICKER_URL = "https://api.mexc.com/api/v3/ticker/price"
+MEXC_24H_URL = "https://api.mexc.com/api/v3/ticker/24hr"
 
-# =========================
-# TOKEN CONFIG (CEX vs DEX)
-# =========================
-TOKENS = {
-    "BNB": {
-        "cex": "BNB-USD",
-        "dexscreener": "wbnb"
-    },
-    "CAKE": {
-        "cex": "CAKE-USD",
-        "dexscreener": "pancakeswap"
-    },
-    "ETH": {
-        "cex": "ETH-USD",
-        "dexscreener": "ethereum"
-    }
-}
+DEXSCREENER_URL = "https://api.dexscreener.com/latest/dex/search?q="
 
-# -----------------------------
-# CEX PRICE (BINANCE)
-# -----------------------------
-def get_coinbase_price(symbol):
+
+def get_top_mexc_symbols(limit=100):
     try:
-        url = f"https://api.coinbase.com/v2/prices/{symbol}-USD/spot"
-        r = requests.get(url, timeout=10)
+        r = requests.get(MEXC_24H_URL, timeout=10)
         data = r.json()
-        return float(data["data"]["amount"])
+
+        sorted_data = sorted(
+            data,
+            key=lambda x: float(x.get("quoteVolume", 0)),
+            reverse=True
+        )
+
+        symbols = []
+        for item in sorted_data:
+            symbol = item["symbol"]
+            if symbol.endswith("USDT"):
+                base = symbol.replace("USDT", "")
+                symbols.append(base)
+
+            if len(symbols) >= limit:
+                break
+
+        return symbols
+
     except Exception as e:
-        print("COINBASE ERROR:", e)
+        print("MEXC TOP ERROR:", e)
+        return []
+
+
+def get_mexc_price(symbol):
+    try:
+        r = requests.get(MEXC_TICKER_URL, timeout=10)
+        data = r.json()
+
+        for item in data:
+            if item["symbol"] == symbol + "USDT":
+                return float(item["price"])
+
+        return None
+
+    except Exception as e:
+        print("MEXC PRICE ERROR:", e)
         return None
 
 
-# -----------------------------
-# DEX PRICE (DEXSCREENER / PANCAKE)
-# -----------------------------
-def get_dex_price(query):
-    """
-    Uses DexScreener as proxy for PancakeSwap/BSC liquidity pools
-    """
+def get_dex_price(symbol):
     try:
-        url = f"https://api.dexscreener.com/latest/dex/search?q={query}"
-        r = requests.get(url, timeout=10)
+        r = requests.get(DEXSCREENER_URL + symbol, timeout=10)
         data = r.json()
 
         pairs = data.get("pairs", [])
         if not pairs:
             return None
 
-        # take most liquid pair
-        best = pairs[0]
+        best = max(pairs, key=lambda x: float(x.get("liquidity", {}).get("usd", 0)))
         return float(best["priceUsd"])
 
     except Exception as e:
@@ -62,31 +67,24 @@ def get_dex_price(query):
         return None
 
 
-# -----------------------------
-# SNAPSHOT ENGINE
-# -----------------------------
 def get_market_snapshot():
-
     snapshot = {}
 
-    for token, data in TOKENS.items():
+    symbols = get_top_mexc_symbols(100)
 
-        cex_price = get_coinbase_price("BTC")
-        dex_price = get_dex_price(data["dexscreener"])
+    for symbol in symbols:
 
+        cex = get_mexc_price(symbol)
+        dex = get_dex_price(symbol)
 
-        print(f"{token} CEX:", cex_price)
-        print(f"{token} DEX:", dex_price)
-
-        if cex_price is None or dex_price is None:
-            print(f"SKIP {token} (missing data)")
+        if cex is None or dex is None:
             continue
 
-        snapshot[token] = {
-            "cex": cex_price,
-            "dex": dex_price
-}
+        snapshot[symbol] = {
+            "cex": cex,
+            "dex": dex
+        }
 
-    print("BNB CEX vs DEX SNAPSHOT READY")
+        print(symbol, "OK")
 
     return snapshot
