@@ -1,115 +1,64 @@
-import requests
-from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 from price_provider import get_market_snapshot
+from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+import requests
 
-print("CRYPTO OPPORTUNITY ENGINE v1 (SCORING MODE)")
+print("CRYPTO OPPORTUNITY ENGINE V2 START")
+
+def send_telegram(msg):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": msg,
+        "parse_mode": "HTML"
+    }
+    requests.post(url, json=payload)
+
 
 snapshot = get_market_snapshot()
-print("SNAPSHOT:", snapshot)
 
+opportunities = []
 
 for token, prices in snapshot.items():
 
     cex = prices["cex"]
     dex = prices["dex"]
 
-    if cex is None or dex is None:
+    if cex <= 0 or dex <= 0:
         continue
 
-    if cex < dex:
-        buy = "CEX (Coinbase)"
-        sell = "DEX (Pancake via DexScreener)"
-    else:
-        buy = "DEX (Pancake via DexScreener)"
-        sell = "CEX (Coinbase)"
+    spread = abs((cex - dex) / cex) * 100
 
-    spread = abs((dex - cex) / cex) * 100
+    score = min(spread * 10, 100)
 
-    score = min(spread * 20, 100)  # placeholder coerente
-
-    msg = (
-        f"🚨 <b>TOP OPPORTUNITY</b>\n\n"
-        f"<b>TOKEN:</b> {token}\n\n"
-        f"<b>BUY ON:</b> {buy}\n"
-        f"<b>SELL ON:</b> {sell}\n\n"
-        f"<b>CEX PRICE:</b> {cex}\n"
-        f"<b>DEX PRICE:</b> {dex}\n\n"
-        f"<b>SPREAD:</b> {spread:.2f}%\n"
-        f"<b>SCORE:</b> {score:.1f}/100\n"
-    )
-
-    send_telegram(msg)
-
-
-
-# =========================
-# SCORING LOOP
-# =========================
-for token, prices in snapshot.items():
-
-    cex = prices["cex"]
-    dex = prices["dex"]
-
-    print(f"\nTOKEN: {token}")
-    print(f"CEX: {cex}")
-    print(f"DEX: {dex}")
-
-    # Spread
-    spread = (cex - dex) / dex
-    spread_pct = abs(spread * 100)
-
-    # SCORE COMPONENTS
-    spread_score = min(spread_pct * 50, 100)
-
-    liquidity_score = 70      # placeholder
-    stability_score = 60      # placeholder
-    cost_penalty = 30         # fees/slippage estimate
-
-    score = (
-        spread_score * 0.5 +
-        liquidity_score * 0.2 +
-        stability_score * 0.2 -
-        cost_penalty * 0.1
-    )
-
-    score = max(0, min(100, score))
-
-    print(f"SPREAD: {spread_pct:.2f}%")
-    print(f"SCORE: {score:.1f}/100")
+    if score < 70:
+        continue
 
     opportunities.append({
         "token": token,
         "score": score,
-        "spread": spread_pct,
+        "spread": spread,
         "cex": cex,
         "dex": dex
     })
 
-
-# =========================
-# RANKING TOP OPPORTUNITIES
-# =========================
 opportunities.sort(key=lambda x: x["score"], reverse=True)
 top = opportunities[:3]
 
+if not top:
+    print("NO SIGNALS")
+    exit()
 
-msg = "📊 TOP OPPORTUNITIES\n\n"
+msg = "🚨 <b>CRYPTO OPPORTUNITIES V2</b>\n\n"
 
 for i, op in enumerate(top, 1):
 
-    if op["score"] >= 70:
-        level = "🔥 STRONG"
-    elif op["score"] >= 50:
-        level = "⚠️ WEAK"
-    else:
-        level = "LOW"
-
     msg += (
-        f"{i}. {op['token']}\n"
-        f"Score: {op['score']:.1f}/100 ({level})\n"
-        f"Spread: {op['spread']:.2f}%\n\n"
+        f"{i}. <b>{op['token']}</b>\n"
+        f"Score: {op['score']:.1f}/100\n"
+        f"Spread: {op['spread']:.2f}%\n"
+        f"CEX: {op['cex']}\n"
+        f"DEX: {op['dex']}\n\n"
     )
 
-
-print("\n" + msg)
 send_telegram(msg)
+print(msg)
