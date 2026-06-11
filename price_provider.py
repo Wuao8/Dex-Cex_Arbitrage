@@ -81,7 +81,10 @@ def get_bsc_dex_price(symbol):
         valid_pairs = []
 
         for p in pairs:
-
+            
+            if not isinstance(p, dict):
+                continue
+                
             chain = p.get("chainId", "")
 
             liquidity = float(
