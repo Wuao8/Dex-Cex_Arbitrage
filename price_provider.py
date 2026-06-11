@@ -81,48 +81,47 @@ def get_bsc_dex_price(symbol):
         valid_pairs = []
 
         for p in pairs:
-            
-            if not isinstance(p, dict):
-                continue
-                
-            chain = p.get("chainId", "")
 
-            liquidity = float(
-                p.get("liquidity", {}).get("usd", 0)
-            )
+    if not isinstance(p, dict):
+        continue
 
-            volume24h = float(
-                p.get("volume", {}).get("h24", 0)
-            )
+    liquidity_obj = p.get("liquidity")
+    volume_obj = p.get("volume")
+    quote_obj = p.get("quoteToken")
 
-            quote = p.get(
-                "quoteToken", {}
-            ).get(
-                "symbol", ""
-            )
+    if not isinstance(liquidity_obj, dict):
+        continue
 
-            if chain != "bsc":
-                continue
+    if not isinstance(volume_obj, dict):
+        continue
 
-            if liquidity < 500000:
-                continue
+    if not isinstance(quote_obj, dict):
+        continue
 
-            if volume24h < 100000:
-                continue
+    chain = p.get("chainId", "")
 
-            if quote not in ["USDT", "WBNB", "BUSD"]:
-                continue
+    liquidity = float(liquidity_obj.get("usd", 0))
+    volume24h = float(volume_obj.get("h24", 0))
+    quote = quote_obj.get("symbol", "")
 
-            price = float(
-                p.get("priceUsd", 0)
-            )
+    if chain != "bsc":
+        continue
 
-            if price <= 0:
-                continue
+    if liquidity < 500000:
+        continue
 
-            valid_pairs.append(
-                (price, liquidity)
-            )
+    if volume24h < 100000:
+        continue
+
+    if quote not in ["USDT", "WBNB", "BUSD"]:
+        continue
+
+    price = float(p.get("priceUsd", 0))
+
+    if price <= 0:
+        continue
+
+    valid_pairs.append((price, liquidity))
 
         if not valid_pairs:
             return None
