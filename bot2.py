@@ -23,7 +23,9 @@ for token, prices in snapshot.items():
     dex = prices["dex"]
 
     spread = abs((cex - dex) / cex) * 100
-
+    if spread > 15:
+        continue
+        
     score = spread * 12
 
     # penalty mega-cap bias already removed upstream
