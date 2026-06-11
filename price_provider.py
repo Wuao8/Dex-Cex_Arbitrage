@@ -82,46 +82,46 @@ def get_bsc_dex_price(symbol):
 
         for p in pairs:
 
-    if not isinstance(p, dict):
-        continue
+            if not isinstance(p, dict):
+                continue
 
-    liquidity_obj = p.get("liquidity")
-    volume_obj = p.get("volume")
-    quote_obj = p.get("quoteToken")
+            liquidity_obj = p.get("liquidity")
+            volume_obj = p.get("volume")
+            quote_obj = p.get("quoteToken")
 
-    if not isinstance(liquidity_obj, dict):
-        continue
+            if not isinstance(liquidity_obj, dict):
+                continue
 
-    if not isinstance(volume_obj, dict):
-        continue
+            if not isinstance(volume_obj, dict):
+                continue
 
-    if not isinstance(quote_obj, dict):
-        continue
+            if not isinstance(quote_obj, dict):
+                continue
 
-    chain = p.get("chainId", "")
+            chain = p.get("chainId", "")
 
-    liquidity = float(liquidity_obj.get("usd", 0))
-    volume24h = float(volume_obj.get("h24", 0))
-    quote = quote_obj.get("symbol", "")
+            liquidity = float(liquidity_obj.get("usd", 0))
+            volume24h = float(volume_obj.get("h24", 0))
+            quote = quote_obj.get("symbol", "")
 
-    if chain != "bsc":
-        continue
+            if chain != "bsc":
+                continue
 
-    if liquidity < 500000:
-        continue
+            if liquidity < 500000:
+                continue
 
-    if volume24h < 100000:
-        continue
+            if volume24h < 100000:
+                continue
 
-    if quote not in ["USDT", "WBNB", "BUSD"]:
-        continue
+            if quote not in ["USDT", "WBNB", "BUSD"]:
+                continue
 
-    price = float(p.get("priceUsd", 0))
+            price = float(p.get("priceUsd", 0))
 
-    if price <= 0:
-        continue
+            if price <= 0:
+                continue
 
-    valid_pairs.append((price, liquidity))
+            valid_pairs.append((price, liquidity))
 
         if not valid_pairs:
             return None
